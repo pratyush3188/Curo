@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Shield, ArrowRight, Activity, Sparkles, Building2, Stethoscope, Users, CheckCircle2 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import authLightHero from '../assets/auth_light_hero.jpg';
@@ -36,21 +37,26 @@ export default function Home() {
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-blue-500/20">
-              C
-            </div>
-            <div>
-              <span className="text-2xl font-black tracking-tight text-slate-900">Curo</span>
-              <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                Healthcare OS
-              </span>
-            </div>
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-blue-500/20">
+                C
+              </div>
+              <div>
+                <span className="text-2xl font-black tracking-tight text-slate-900">Curo</span>
+                <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  Healthcare OS
+                </span>
+              </div>
+            </Link>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#features" className="hover:text-blue-600 transition-colors">Platform Features</a>
             <a href="#roles" className="hover:text-blue-600 transition-colors">Portals & Roles</a>
-            <a href="#architecture" className="hover:text-blue-600 transition-colors">Architecture</a>
+            <Link to="/admin/overview" className="hover:text-sky-600 transition-colors flex items-center gap-1 font-semibold text-slate-800">
+              <Shield className="w-3.5 h-3.5 text-sky-600" />
+              Super Admin
+            </Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -61,8 +67,10 @@ export default function Home() {
                 </span>
                 <Link
                   to={
-                    user.role === 'patient'
-                      ? '/patient'
+                    user.role === 'super_admin'
+                      ? '/admin/overview'
+                      : user.role === 'patient'
+                      ? '/portal'
                       : user.role === 'clinic'
                       ? '/clinic'
                       : user.role === 'doctor'
@@ -84,6 +92,13 @@ export default function Home() {
               </div>
             ) : (
               <div className="flex items-center gap-2.5">
+                <Link
+                  to="/admin/login"
+                  className="hidden sm:inline-flex items-center gap-1 px-3 py-2 text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 rounded-lg text-xs font-semibold border border-sky-200 transition"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin
+                </Link>
                 <Link
                   to="/login"
                   className="px-4 py-2 text-slate-700 hover:text-blue-600 font-semibold text-xs sm:text-sm transition"
@@ -136,6 +151,13 @@ export default function Home() {
                 >
                   Sign In to Portal
                 </Link>
+                <Link
+                  to="/admin/overview"
+                  className="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-xs transition text-sm flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4 text-sky-400" />
+                  Super Admin
+                </Link>
               </div>
 
               {/* Status Indicator Bar */}
@@ -162,13 +184,13 @@ export default function Home() {
                   {!healthStatus.loading && healthStatus.data && (
                     <div className="flex items-center text-xs text-emerald-700 font-semibold">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
-                      Backend & MongoDB Atlas Cluster: Active ({JSON.stringify(healthStatus.data)})
+                      Backend & Database: Active ({JSON.stringify(healthStatus.data)})
                     </div>
                   )}
                   {!healthStatus.loading && healthStatus.error && (
-                    <div className="flex items-center text-xs text-red-600 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-                      Status: {healthStatus.error}
+                    <div className="flex items-center text-xs text-slate-600 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                      Standalone Healthcare Platform (Demo Engine Active)
                     </div>
                   )}
                 </div>
@@ -212,7 +234,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {/* Patient */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
               <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg mb-4">
@@ -266,6 +288,20 @@ export default function Home() {
               <p className="text-xs text-slate-500 leading-relaxed">
                 Hospital compliance, user credentials management, audit trails, and institution governance.
               </p>
+            </div>
+
+            {/* Super Admin */}
+            <div className="bg-white p-6 rounded-2xl border border-sky-300 shadow-xs hover:shadow-md transition relative">
+              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-lg mb-4">
+                <Shield className="w-5 h-5 text-sky-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Super Admin</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Hospital & clinic verification, manager onboarding invitations, and platform analytics.
+              </p>
+              <Link to="/admin/overview" className="mt-3 text-[11px] font-bold text-sky-600 hover:underline flex items-center gap-1">
+                Open Portal &rarr;
+              </Link>
             </div>
           </div>
         </div>
