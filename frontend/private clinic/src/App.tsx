@@ -140,41 +140,35 @@ export const AppContent: React.FC = () => {
               boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
             }}
           >
-            <label
+            <div
               style={{
-                fontSize: '11px',
-                color: '#006064',
-                textTransform: 'uppercase',
-                fontWeight: 800,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '6px'
+                justifyContent: 'center',
+                marginBottom: '8px'
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <UserCog size={13} style={{ color: '#00838f' }} /> Active Staff Member
-              </span>
               <span
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: isReceptionist ? '#00838f' : '#059669',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  letterSpacing: '0.2px',
+                  color: isReceptionist ? '#006064' : '#047857',
                   background: isReceptionist ? 'rgba(0, 131, 143, 0.1)' : 'rgba(5, 150, 105, 0.1)',
-                  padding: '1px 6px',
-                  borderRadius: '4px'
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  border: isReceptionist ? '1px solid rgba(0, 131, 143, 0.2)' : '1px solid rgba(5, 150, 105, 0.2)'
                 }}
               >
                 {isReceptionist ? 'Reception Desk' : 'Physician'}
               </span>
-            </label>
+            </div>
             <select
               value={currentUser.id}
               onChange={(e) => selectActiveUser(e.target.value)}
               className="form-select"
               style={{
                 fontSize: '12px',
-                padding: '7px 8px',
+                padding: '6px 8px',
                 width: '100%',
                 borderColor: '#80deea',
                 fontWeight: 700,
@@ -188,42 +182,20 @@ export const AppContent: React.FC = () => {
                 </option>
               ))}
             </select>
-
-            <div
-              style={{
-                marginTop: '8px',
-                padding: '6px 8px',
-                borderRadius: '6px',
-                background: isReceptionist ? 'rgba(0, 131, 143, 0.08)' : 'rgba(5, 150, 105, 0.08)',
-                border: isReceptionist ? '1px solid #b2ebf2' : '1px solid #a7f3d0',
-                fontSize: '10.5px',
-                lineHeight: 1.35
-              }}
-            >
-              {isReceptionist ? (
-                <span style={{ color: '#006064' }}>
-                  <strong>Receptionist Mode:</strong> Full clearance to manage clinic appointments, patient files, lab reports & doctors.
-                </span>
-              ) : (
-                <span style={{ color: '#065f46' }}>
-                  <strong>Doctor Mode ({currentUser.fullName}):</strong> Scoped to your visiting patients only.
-                </span>
-              )}
-            </div>
           </div>
 
           {/* Clean Navigation Items */}
-          <nav style={{ padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <nav style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <button
               onClick={() => setActiveNav('operations')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
                 width: '100%',
-                padding: '9px 12px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
@@ -233,7 +205,7 @@ export const AppContent: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <BarChart3 size={17} /> Daily Dashboard
+              <BarChart3 size={18} /> Daily Dashboard
             </button>
 
             <button
@@ -241,11 +213,11 @@ export const AppContent: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
                 width: '100%',
-                padding: '9px 12px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
@@ -255,7 +227,7 @@ export const AppContent: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <CalendarCheck size={17} /> Appointment Requests
+              <CalendarCheck size={18} /> Appointment Requests
             </button>
 
             <button
@@ -263,11 +235,11 @@ export const AppContent: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
                 width: '100%',
-                padding: '9px 12px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
@@ -277,7 +249,7 @@ export const AppContent: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <Stethoscope size={17} /> Prescriptions & Visits
+              <Stethoscope size={18} /> Prescriptions & Visits
             </button>
 
             {/* NEAT & CLEAN PATIENT DROPDOWN ACCORDION (Holds Communication, Reports & Next Visit) */}
@@ -289,9 +261,9 @@ export const AppContent: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  padding: '9px 12px',
+                  padding: '11px 14px',
                   borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
+                  fontSize: '13.5px',
                   fontWeight: 600,
                   cursor: 'pointer',
                   border: 'none',
@@ -301,8 +273,8 @@ export const AppContent: React.FC = () => {
                   transition: 'all 0.15s ease'
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Users size={17} /> Patients
+                <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Users size={18} /> Patients
                 </span>
                 <ChevronDown
                   size={15}
@@ -430,11 +402,11 @@ export const AppContent: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
                 width: '100%',
-                padding: '9px 12px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
@@ -444,7 +416,7 @@ export const AppContent: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <UserCheck size={17} /> Doctors & Hours
+              <UserCheck size={18} /> Doctors & Hours
             </button>
 
             <button
@@ -452,11 +424,11 @@ export const AppContent: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '12px',
                 width: '100%',
-                padding: '9px 12px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
@@ -466,7 +438,7 @@ export const AppContent: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <Building2 size={17} /> Clinic Profile
+              <Building2 size={18} /> Clinic Profile
             </button>
           </nav>
         </div>
@@ -518,7 +490,7 @@ export const AppContent: React.FC = () => {
         >
           <div>
             <h1 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>
-              {activeNav === 'operations' && 'Daily Operations, Schedule & Financial Summary'}
+              {activeNav === 'operations' && <strong>{currentClinic.name}</strong>}
               {activeNav === 'requests' && 'Incoming Appointment Enquiries & Slot Confirmation'}
               {activeNav === 'doctors' && 'Physicians, Working Hours & Availability'}
               {activeNav === 'patients' && 'Patient Directory, Diagnostic Reports & Next Visit Scheduling'}
@@ -529,7 +501,6 @@ export const AppContent: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span className="badge badge-blue">Clinic ID: {currentClinic.id}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img
                 src={currentUser.avatarUrl}
