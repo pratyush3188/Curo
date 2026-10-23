@@ -3,10 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently -n BACKEND,FRONTEND,ML_SERVICE -c blue,green,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"( [ -f ../../AI-TRIAGE-SYSTEM-/.venv/bin/python ] && ../../AI-TRIAGE-SYSTEM-/.venv/bin/python backend/src/services/flask_triage_server.py ) || python3 backend/src/services/flask_triage_server.py\"",
+    "dev": "concurrently -n BACKEND,FRONTEND,ML_SERVICE -c blue,green,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"( [ -f ../../.venv/bin/python ] && ../../.venv/bin/python backend/src/ml/flask_app.py ) || python3 backend/src/ml/flask_app.py || python backend/src/ml/flask_app.py\"",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
-    "dev:ml": "../../AI-TRIAGE-SYSTEM-/.venv/bin/python backend/src/services/flask_triage_server.py",
+    "dev:ml": "( [ -f ../../.venv/bin/python ] && ../../.venv/bin/python backend/src/ml/flask_app.py ) || python3 backend/src/ml/flask_app.py || python backend/src/ml/flask_app.py",
     "seed": "node backend/src/seed.js --run"
   },
   "devDependencies": {

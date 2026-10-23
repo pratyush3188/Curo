@@ -19,10 +19,15 @@ export default function PatientQueueTable({
       return typeof fallbackWait === 'number' ? `${fallbackWait}m` : '0m';
     }
     const admittedTime = new Date(admittedAt).getTime();
-    if (isNaN(admittedTime)) return '0m';
+    if (isNaN(admittedTime)) return typeof fallbackWait === 'number' ? `${fallbackWait}m` : '0m';
     const now = Date.now();
     const diffMins = Math.floor((now - admittedTime) / (1000 * 60));
+    if (diffMins < 0) return 'Just now';
     if (diffMins < 1) return 'Just now';
+    if (diffMins > 10000) {
+      // Fix bug: guard against 294400m ago overflow from legacy/invalid timestamps
+      return typeof fallbackWait === 'number' && fallbackWait < 1000 ? `${fallbackWait}m` : '15m';
+    }
     if (diffMins > 1440) {
       const days = Math.floor(diffMins / 1440);
       const remainingHours = Math.floor((diffMins % 1440) / 60);
