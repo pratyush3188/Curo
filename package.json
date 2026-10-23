@@ -1,11 +1,11 @@
 {
-  "name": "nhh-root",
+  "name": "curo-root",
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "start:flask": "cd curo/Curo/backend/src/ml && (../../../../../.venv/bin/python flask_app.py || python flask_app.py || python3 flask_app.py)",
-    "start:backend": "cd curo/Curo/backend && npm run dev",
-    "start:frontend": "cd curo/Curo/frontend && npm run dev",
+    "start:flask": "cd backend/src/ml && (python flask_app.py || python3 flask_app.py)",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
     "dev": "concurrently -n FLASK,BACKEND,FRONTEND -c magenta,blue,green \"npm run start:flask\" \"npm run start:backend\" \"npm run start:frontend\""
   },
   "devDependencies": {
