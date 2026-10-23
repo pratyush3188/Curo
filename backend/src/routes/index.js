@@ -2,6 +2,7 @@ import { Router } from 'express';
 import authRoutes from './authRoutes.js';
 import adminDashboardRoutes from './adminDashboardRoutes.js';
 import hospitalRoutes from './hospitalRoutes.js';
+import adminClinicRoutes from './adminClinicRoutes.js';
 import clinicRoutes from './clinicRoutes.js';
 import applicationRoutes from './applicationRoutes.js';
 import invitationRoutes from './invitationRoutes.js';
@@ -22,16 +23,18 @@ router.use('/auth', authRoutes);
 // Super Admin Operational Portal Routes (Scoped under /admin)
 router.use('/admin', adminDashboardRoutes);
 router.use('/admin/hospitals', hospitalRoutes);
-router.use('/admin/clinics', clinicRoutes);
+router.use('/admin/clinics', adminClinicRoutes);
 router.use('/admin/applications', applicationRoutes);
 router.use('/admin/invitations', invitationRoutes);
 router.use('/admin/users', userManagementRoutes);
 router.use('/admin/audit-logs', auditLogRoutes);
 router.use('/admin/settings', settingsRoutes);
 
+// Private Clinic Operational Routes
+router.use('/clinics', clinicRoutes);
+
 // Direct Aliases for Standard REST compatibility
 router.use('/hospitals', hospitalRoutes);
-router.use('/clinics', clinicRoutes);
 router.use('/applications', applicationRoutes);
 router.use('/invitations', invitationRoutes);
 router.use('/users', userManagementRoutes);
