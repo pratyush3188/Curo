@@ -15,6 +15,9 @@ import AdminDashboard from '../pages/hospital/admin/AdminDashboard';
 import ManagerDashboard from '../pages/hospital/manager/ManagerDashboard';
 import DoctorDashboard from '../pages/hospital/doctor/DoctorDashboard';
 
+// Dedicated User Portal (Shown immediately after signup)
+import UserPortal from '../pages/portal/UserPortal';
+
 // 404
 import NotFound from '../pages/NotFound';
 
@@ -25,6 +28,9 @@ export default function AppRouter() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
+      {/* Dedicated User Portal for newly signed up & logged-in users */}
+      <Route path="/portal" element={<UserPortal />} />
 
       {/* Patient routes */}
       <Route element={<ProtectedRoute allowedRoles={['patient']} />}>

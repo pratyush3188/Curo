@@ -4,14 +4,15 @@ import { ROLE_LIST, ROLES } from '../constants/roles.js';
 
 const userSchema = new mongoose.Schema(
   {
+    // Basic Account Details
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, 'Full name is required'],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Email address is required'],
       unique: true,
       lowercase: true,
       trim: true,
@@ -20,16 +21,69 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false, // Don't return password by default
+      select: false,
     },
     role: {
       type: String,
       enum: ROLE_LIST,
       default: ROLES.PATIENT,
+      required: true,
     },
     phone: {
       type: String,
+      trim: true,
       default: '',
+    },
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'other', 'prefer_not_to_say', ''],
+      default: '',
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+
+    // Detailed Profile / Demographics
+    address: {
+      street: { type: String, default: '' },
+      city: { type: String, default: '' },
+      state: { type: String, default: '' },
+      zipCode: { type: String, default: '' },
+      country: { type: String, default: 'India' },
+    },
+
+    // Patient Specific Details
+    bloodGroup: {
+      type: String,
+      enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown', ''],
+      default: 'Unknown',
+    },
+    emergencyContact: {
+      name: { type: String, default: '' },
+      relationship: { type: String, default: '' },
+      phone: { type: String, default: '' },
+    },
+    medicalHistorySummary: {
+      type: String,
+      default: '',
+    },
+
+    // Doctor / Clinic / Hospital Staff Specific Details
+    professionalInfo: {
+      specialization: { type: String, default: '' },
+      licenseNumber: { type: String, default: '' },
+      experienceYears: { type: Number, default: 0 },
+      hospitalAffiliation: { type: String, default: '' },
+      qualification: { type: String, default: '' },
+    },
+
+    // Status & Audit
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    lastLogin: {
+      type: Date,
     },
   },
   {

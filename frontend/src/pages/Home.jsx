@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import authLightHero from '../assets/auth_light_hero.jpg';
 
 export default function Home() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -30,28 +31,34 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-800">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg border border-slate-200 p-8 text-center">
-        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl">
-          C
-        </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
-          Curo
-        </h1>
-        <p className="text-sm text-slate-500 mb-6">
-          Healthcare Web App Platform Skeleton
-        </p>
-
-        {/* Auth status & quick actions */}
-        <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 text-left">
-          {isAuthenticated ? (
+    <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+      {/* Top Navigation Bar */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-blue-500/20">
+              C
+            </div>
             <div>
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                Logged in as
-              </p>
-              <p className="text-sm font-bold text-slate-800">{user?.name} ({user?.role})</p>
-              <p className="text-xs text-slate-500">{user?.email}</p>
-              <div className="mt-3 flex gap-2">
+              <span className="text-2xl font-black tracking-tight text-slate-900">Curo</span>
+              <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                Healthcare OS
+              </span>
+            </div>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#features" className="hover:text-blue-600 transition-colors">Platform Features</a>
+            <a href="#roles" className="hover:text-blue-600 transition-colors">Portals & Roles</a>
+            <a href="#architecture" className="hover:text-blue-600 transition-colors">Architecture</a>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-slate-600 hidden sm:inline">
+                  {user?.name} ({user?.role})
+                </span>
                 <Link
                   to={
                     user.role === 'patient'
@@ -64,84 +71,257 @@ export default function Home() {
                       ? '/hospital/manager'
                       : '/hospital/admin'
                   }
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition"
                 >
-                  Go to Dashboard
+                  Dashboard
                 </Link>
                 <button
                   onClick={logout}
-                  className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium cursor-pointer"
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
                 >
                   Logout
                 </button>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs text-slate-600">
-                Ready for team development. Test the base authentication flow:
-              </p>
-              <div className="flex gap-2 mt-1">
+            ) : (
+              <div className="flex items-center gap-2.5">
                 <Link
                   to="/login"
-                  className="flex-1 text-center py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition"
+                  className="px-4 py-2 text-slate-700 hover:text-blue-600 font-semibold text-xs sm:text-sm transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="flex-1 text-center py-2 px-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-sm shadow-blue-500/20 transition hover:shadow-md"
                 >
-                  Register
+                  Get Started
                 </Link>
               </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-blue-50/50 via-white to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Copy */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-4 py-1.5 shadow-xs">
+                <span className="flex h-2 w-2 rounded-full bg-blue-600" />
+                <span className="text-xs font-semibold text-blue-900">
+                  Unified Clinical & Administrative Operating System
+                </span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-950 tracking-tight leading-[1.12]">
+                Transforming care delivery for patients, doctors & clinics.
+              </h1>
+
+              <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed max-w-2xl">
+                Curo consolidates electronic medical records, role-based workflows, automated prescription safety validation, and transparent patient communication into a single modern platform.
+              </p>
+
+              <div className="flex flex-wrap gap-3.5 pt-2">
+                <Link
+                  to="/register"
+                  className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md shadow-blue-500/20 transition-all hover:shadow-lg text-sm"
+                >
+                  Create Your Account &rarr;
+                </Link>
+                <Link
+                  to="/login"
+                  className="px-6 py-3.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold rounded-xl shadow-xs transition text-sm"
+                >
+                  Sign In to Portal
+                </Link>
+              </div>
+
+              {/* Status Indicator Bar */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 max-w-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Live System & Database Connectivity
+                  </span>
+                  <button
+                    onClick={checkHealth}
+                    disabled={healthStatus.loading}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline cursor-pointer"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  {healthStatus.loading && (
+                    <div className="flex items-center text-xs text-amber-600 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></span>
+                      Pinging /api/v1/health...
+                    </div>
+                  )}
+                  {!healthStatus.loading && healthStatus.data && (
+                    <div className="flex items-center text-xs text-emerald-700 font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+                      Backend & MongoDB Atlas Cluster: Active ({JSON.stringify(healthStatus.data)})
+                    </div>
+                  )}
+                  {!healthStatus.loading && healthStatus.error && (
+                    <div className="flex items-center text-xs text-red-600 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                      Status: {healthStatus.error}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Backend health status card */}
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Backend Status
+            {/* Right Hero Image */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative mx-auto rounded-3xl overflow-hidden border border-slate-200 shadow-2xl shadow-blue-900/10 bg-white">
+                <img
+                  src={authLightHero}
+                  alt="Modern Light Clinic Reception"
+                  className="w-full h-[440px] object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent flex flex-col justify-end p-6 text-white">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+                    Verified Digital Workflow
+                  </span>
+                  <p className="text-base font-bold mt-1">
+                    Connecting 5 Healthcare Stakeholders in Real-Time
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Role Cards Section */}
+      <section id="roles" className="py-20 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+              Role-Based Architecture
             </span>
-            <button
-              onClick={checkHealth}
-              disabled={healthStatus.loading}
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium underline cursor-pointer disabled:opacity-50"
-            >
-              Recheck
-            </button>
+            <h2 className="text-3xl font-extrabold text-slate-900">
+              Tailored Portals for Every Stakeholder
+            </h2>
+            <p className="text-sm text-slate-600">
+              Choose your role during registration to access purpose-built dashboards designed for your daily workflow.
+            </p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            {healthStatus.loading && (
-              <div className="flex items-center text-sm text-amber-600 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping mr-2"></span>
-                Checking /api/v1/health...
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {/* Patient */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg mb-4">
+                P
               </div>
-            )}
+              <h3 className="font-bold text-slate-900 mb-1">Patient</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                View personal electronic prescriptions, diagnostic test results, and book consultations.
+              </p>
+            </div>
 
-            {!healthStatus.loading && healthStatus.data && (
-              <div className="flex items-center text-sm text-emerald-600 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span>
-                Online & Healthy: {JSON.stringify(healthStatus.data)}
+            {/* Doctor */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg mb-4">
+                Dr
               </div>
-            )}
+              <h3 className="font-bold text-slate-900 mb-1">Doctor</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Review patient records, conduct consultations, and issue safety-checked prescriptions.
+              </p>
+            </div>
 
-            {!healthStatus.loading && healthStatus.error && (
-              <div className="flex items-center text-sm text-rose-600 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2"></span>
-                Error: {healthStatus.error}
+            {/* Clinic */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg mb-4">
+                C
               </div>
-            )}
+              <h3 className="font-bold text-slate-900 mb-1">Clinic</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Manage appointment queues, clinic doctors schedule, and primary patient intake logs.
+              </p>
+            </div>
+
+            {/* Hospital Manager */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg mb-4">
+                M
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Hospital Manager</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Oversee hospital departments, resource allocation, capacity, and staff availability.
+              </p>
+            </div>
+
+            {/* Hospital Admin */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg mb-4">
+                A
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Hospital Admin</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Hospital compliance, user credentials management, audit trails, and institution governance.
+              </p>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="text-xs text-slate-400">
-          Target API: <span className="font-mono text-slate-600">{import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}</span>
+      {/* Feature Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="p-8 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                01
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">AI Report Simplification</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Service stubs ready for team integration to convert complex diagnostic lab results into readable summaries for patients.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+                02
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Prescription Safety Checks</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Automated drug-to-drug contradiction checks and dosage verification before prescriptions are finalized.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+                03
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Audit-Ready Security</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Complete traceability with immutable audit logging models and granular role-based authorization tokens.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 bg-slate-900 text-white border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-xs">
+              C
+            </div>
+            <span className="font-bold text-base">Curo Healthcare Platform</span>
+          </div>
+          <p className="text-xs text-slate-400">
+            &copy; {new Date().getFullYear()} Curo Health Systems. Clean Light Theme Architecture.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
