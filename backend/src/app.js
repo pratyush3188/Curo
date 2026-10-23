@@ -44,6 +44,7 @@ app.use(cookieParser());
 
 // Mount API routes under /api/v1
 app.use('/api/v1', routes);
+app.use('/api', routes);
 
 // 404 handler
 app.use(notFound);

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/client';
+import apiClient from '../services/apiClient';
+import adminApi from '../services/adminApi';
 
 const AuthContext = createContext(null);
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('curo_token');
         if (token) {
-          // If demo token
+          // If demo offline token, preserve local demo user
           if (token.startsWith('demo_sa_token_')) {
             const saved = localStorage.getItem('curo_user');
             if (saved) {
@@ -30,17 +31,17 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const res = await api.get('/auth/me');
-          if (res.data?.user) {
-            setUser(res.data.user);
-            localStorage.setItem('curo_user', JSON.stringify(res.data.user));
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          const res = await adminApi.getMe();
+          if (res?.user) {
+            setUser(res.user);
+            localStorage.setItem('curo_user', JSON.stringify(res.user));
           }
         }
-      } catch {
-        // If demo user exists, keep it
+      } catch (err) {
+        // If backend is offline or network error, keep offline session if exists
         const saved = localStorage.getItem('curo_user');
-        if (saved) {
+        if (!err.response && saved) {
           try {
             const u = JSON.parse(saved);
             if (u.role === 'super_admin') {
@@ -63,71 +64,69 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const cleanEmail = email?.trim().toLowerCase();
 
-    // Check if logging in as Super Admin demo credentials
-    if (cleanEmail === 'admin@medicore.health' || cleanEmail === 'superadmin@curo.health') {
-      const demoSuperAdmin = {
-        id: 'usr-sa-001',
-        name: 'Dr. Alok Verma',
-        email: cleanEmail,
-        role: 'super_admin',
-        facilityType: null,
-        facilityId: null,
-        facilityName: 'MediCore Platform Central',
-        department: 'Central Clinical Informatics Directorate',
-        accountStatus: 'active',
-      };
-      const demoToken = `demo_sa_token_${Date.now()}`;
-      localStorage.setItem('curo_token', demoToken);
-      localStorage.setItem('curo_user', JSON.stringify(demoSuperAdmin));
-      setUser(demoSuperAdmin);
-      return demoSuperAdmin;
-    }
-
     try {
-      const res = await api.post('/auth/login', { email, password });
-      const { token, user: userData } = res.data;
+      // 1. First attempt real backend authentication
+      const res = await adminApi.login({ email: cleanEmail, password });
+      const { token, user: userData } = res;
       if (token) {
         localStorage.setItem('curo_token', token);
         localStorage.setItem('curo_user', JSON.stringify(userData));
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(userData);
       }
       return userData;
     } catch (err) {
-      // If backend is not running and user entered admin credentials
-      if (cleanEmail.includes('admin')) {
-        const fallbackAdmin = {
+      // 2. If the backend is running and returned a formal error (401 invalid creds, 403, 400), throw it!
+      if (err.response) {
+        const message = err.response.data?.message || 'Invalid email or password credentials.';
+        throw new Error(message, { cause: err });
+      }
+
+      // 3. Fallback only if backend is completely offline (Network Error / ECONNREFUSED)
+      if (cleanEmail === 'admin@curo.health' || cleanEmail === 'admin@medicore.health' || cleanEmail === 'superadmin@curo.health') {
+        const demoSuperAdmin = {
           id: 'usr-sa-001',
           name: 'Dr. Alok Verma',
           email: cleanEmail,
           role: 'super_admin',
-          facilityName: 'MediCore Platform Central',
+          facilityType: null,
+          facilityId: null,
+          facilityName: 'CURO Platform Central',
+          department: 'Central Clinical Informatics Directorate',
+          accountStatus: 'active',
         };
-        localStorage.setItem('curo_token', `demo_sa_token_${Date.now()}`);
-        localStorage.setItem('curo_user', JSON.stringify(fallbackAdmin));
-        setUser(fallbackAdmin);
-        return fallbackAdmin;
+        const demoToken = `demo_sa_token_${Date.now()}`;
+        localStorage.setItem('curo_token', demoToken);
+        localStorage.setItem('curo_user', JSON.stringify(demoSuperAdmin));
+        setUser(demoSuperAdmin);
+        return demoSuperAdmin;
       }
-      throw err;
+
+      throw new Error(err.message || 'Unable to connect to CURO authentication service.', { cause: err });
     }
   };
 
   const register = async (formData) => {
-    const res = await api.post('/auth/register', formData);
+    const res = await apiClient.post('/auth/register', formData);
     const { token, user: userData } = res.data;
     if (token) {
       localStorage.setItem('curo_token', token);
       localStorage.setItem('curo_user', JSON.stringify(userData));
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
     }
     return userData;
   };
 
   const logout = () => {
+    try {
+      adminApi.logout().catch(() => {});
+    } catch {
+      // Ignore network errors on logout
+    }
     localStorage.removeItem('curo_token');
     localStorage.removeItem('curo_user');
-    delete api.defaults.headers.common['Authorization'];
+    delete apiClient.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
@@ -152,3 +151,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;

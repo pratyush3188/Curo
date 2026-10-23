@@ -1,13 +1,29 @@
+import { ApiError } from '../utils/ApiError.js';
+
 /**
- * Role-Based Access Control Middleware Stub
- * TODO: Check if req.user role matches one of the allowed roles
+ * Role-Based Access Control Middleware
+ * Ensures req.user has one of the allowed roles
  */
-// eslint-disable-next-line no-unused-vars
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    // TODO: Verify if req.user is set
-    // TODO: Verify if allowedRoles.includes(req.user.role)
-    // TODO: Return 403 Forbidden ApiError if role does not match
+    if (!req.user) {
+      return next(new ApiError(401, 'Authentication required before checking permissions.'));
+    }
+
+    // Flatten if passed as array
+    const roles = allowedRoles.flat();
+
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ApiError(
+          403,
+          `Access forbidden: role '${req.user.role}' is not authorized to perform this operation.`
+        )
+      );
+    }
+
     next();
   };
 };
+
+export const authorize = requireRole;

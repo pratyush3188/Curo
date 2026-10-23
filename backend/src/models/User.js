@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     password: {
       type: String,
@@ -28,6 +29,7 @@ const userSchema = new mongoose.Schema(
       enum: ROLE_LIST,
       default: ROLES.PATIENT,
       required: true,
+      index: true,
     },
     phone: {
       type: String,
@@ -41,6 +43,36 @@ const userSchema = new mongoose.Schema(
     },
     dateOfBirth: {
       type: Date,
+    },
+
+    // Account Governance & Facility Associations
+    accountStatus: {
+      type: String,
+      enum: ['active', 'pending_activation', 'suspended', 'inactive'],
+      default: 'active',
+      index: true,
+    },
+    associatedFacilityType: {
+      type: String,
+      enum: ['hospital', 'clinic', null],
+      default: null,
+    },
+    associatedFacilityId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    facilityName: {
+      type: String,
+      default: '',
+    },
+    assignedDepartmentId: {
+      type: String,
+      default: null,
+    },
+    department: {
+      type: String,
+      default: '',
     },
 
     // Detailed Profile / Demographics
@@ -85,9 +117,20 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    lastLoginAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        ret.id = ret._id ? ret._id.toString() : ret.id;
+        delete ret.password;
+        return ret;
+      },
+    },
   }
 );
 

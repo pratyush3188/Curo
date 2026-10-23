@@ -97,7 +97,7 @@ export default function Home() {
                   className="hidden sm:inline-flex items-center gap-1 px-3 py-2 text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 rounded-lg text-xs font-semibold border border-sky-200 transition"
                 >
                   <Shield className="w-3.5 h-3.5" />
-                  Admin
+                  CURO Admin
                 </Link>
                 <Link
                   to="/login"

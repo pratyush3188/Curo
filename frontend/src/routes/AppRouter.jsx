@@ -20,7 +20,6 @@ const HospitalApplications = lazy(() => import('../pages/admin/HospitalApplicati
 const ClinicManagement = lazy(() => import('../pages/admin/ClinicManagement'));
 const ClinicApplications = lazy(() => import('../pages/admin/ClinicApplications'));
 const UserManagement = lazy(() => import('../pages/admin/UserManagement'));
-const AccountInvitations = lazy(() => import('../pages/admin/AccountInvitations'));
 const AuditLogs = lazy(() => import('../pages/admin/AuditLogs'));
 const Analytics = lazy(() => import('../pages/admin/Analytics'));
 const AdminSettings = lazy(() => import('../pages/admin/AdminSettings'));
@@ -68,7 +67,7 @@ export default function AppRouter() {
             <Route path="/admin/clinics" element={<ClinicManagement />} />
             <Route path="/admin/clinic-applications" element={<ClinicApplications />} />
             <Route path="/admin/users" element={<UserManagement />} />
-            <Route path="/admin/invitations" element={<AccountInvitations />} />
+            <Route path="/admin/invitations" element={<Navigate to="/admin/hospitals" replace />} />
             <Route path="/admin/audit-logs" element={<AuditLogs />} />
             <Route path="/admin/analytics" element={<Analytics />} />
             <Route path="/admin/settings" element={<AdminSettings />} />

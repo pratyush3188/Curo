@@ -15,7 +15,7 @@ export const authenticate = async (req, res, next) => {
   }
 
   if (!token) {
-    return next(new ApiError(401, 'Not authorized to access this route'));
+    return next(new ApiError(401, 'Authentication token missing. Please sign in.'));
   }
 
   try {
@@ -23,12 +23,20 @@ export const authenticate = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return next(new ApiError(401, 'User no longer exists'));
+      return next(new ApiError(401, 'User account associated with this token no longer exists.'));
+    }
+
+    if (user.accountStatus === 'suspended') {
+      return next(new ApiError(403, 'Your account has been suspended by platform administration.'));
+    }
+
+    if (user.accountStatus === 'inactive') {
+      return next(new ApiError(403, 'Your account is currently inactive. Please contact administration.'));
     }
 
     req.user = user;
     next();
   } catch {
-    return next(new ApiError(401, 'Token is invalid or expired'));
+    return next(new ApiError(401, 'Session token is invalid or has expired. Please log in again.'));
   }
 };
