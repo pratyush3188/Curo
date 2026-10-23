@@ -1,0 +1,13 @@
+{
+  "name": "nhh-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm run dev --prefix curo/Curo",
+    "dev:curo": "npm run dev --prefix curo/Curo",
+    "dev:triage": "npm run dev --prefix AI-TRIAGE-SYSTEM-",
+    "backend": "npm run dev:backend --prefix curo/Curo",
+    "frontend": "npm run dev:frontend --prefix curo/Curo",
+    "seed": "npm run seed --prefix curo/Curo"
+  }
+}
