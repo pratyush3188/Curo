@@ -11,9 +11,8 @@ CORS(app)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Reference path to trained models
 CANDIDATE_PATHS = [
+    (os.path.abspath(os.path.join(BASE_DIR, "..", "ml", "model.pkl")), os.path.abspath(os.path.join(BASE_DIR, "..", "ml", "columns.pkl"))),
     (os.path.abspath(os.path.join(BASE_DIR, "ml", "model.pkl")), os.path.abspath(os.path.join(BASE_DIR, "ml", "columns.pkl"))),
-    (os.path.abspath(os.path.join(BASE_DIR, "..", "..", "..", "..", "..", "AI-TRIAGE-SYSTEM-", "viditdatabse", "model.pkl")), os.path.abspath(os.path.join(BASE_DIR, "..", "..", "..", "..", "..", "AI-TRIAGE-SYSTEM-", "viditdatabse", "columns.pkl"))),
-    (os.path.abspath(os.path.join(BASE_DIR, "..", "..", "..", "..", "..", "AI-TRIAGE-SYSTEM-", "model.pkl")), os.path.abspath(os.path.join(BASE_DIR, "ml", "columns.pkl")))
 ]
 
 model = None

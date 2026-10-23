@@ -1,6 +1,0 @@
-node_modules/
-.venv/
-service-account.json
-.env
-**/__pycache__/
-*.pyc
