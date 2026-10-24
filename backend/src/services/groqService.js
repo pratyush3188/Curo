@@ -237,8 +237,9 @@ export async function analyzePrescriptionWithGroq({
   prescriptionText,
   doctorName = 'Physician',
   hospitalOrClinic = 'Medical Center',
+  language = 'English',
 }) {
-  const systemPrompt = `You are a clinical pharmacologist and prescription safety verification AI.
+  const systemPrompt = `You are a clinical pharmacologist and prescription safety verification AI for Curo Healthcare.
 Inspect the doctor's prescription text for:
 1. Hazardous drug-drug interactions (contraindications)
 2. Dosage anomaly errors (e.g. Paracetamol > 4000mg/day, dangerous statin interactions, NSAIDs with ACE inhibitors, anticoagulant risks)
@@ -272,19 +273,20 @@ Return strictly valid JSON matching this schema:
       "purpose": string
     }
   ],
-  "simplifiedSummary": string (clear markdown report for the patient detailing their medication schedule, safety precautions, and physician notes)
+  "simplifiedSummary": string (comprehensive, beautiful markdown report for the patient detailing their medication schedule, safety precautions, and questions to ask their doctor, translated into the requested language: ${language})
 }`;
 
   const userPrompt = `Prescription Details:
 - Prescribing Doctor: ${doctorName}
 - Institution: ${hospitalOrClinic}
+- Language Requested: ${language}
 
 Prescription Script / Instructions:
 """
 ${prescriptionText}
 """
 
-Verify drug interactions and medication safety now. Return strict JSON matching the schema.`;
+Verify drug interactions and medication safety now. Return strict JSON matching the schema with simplifiedSummary in ${language}.`;
 
   try {
     const { content, modelUsed } = await queryGroq([

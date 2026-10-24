@@ -80,12 +80,12 @@ export default function AppRouter() {
           <Route path="/patient" element={<PatientDashboard />} />
         </Route>
 
-        <Route element={<ProtectedRoute allowedRoles={['clinic']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['clinic', 'clinic_manager']} />}>
           <Route path="/clinic" element={<ClinicDashboard />} />
         </Route>
 
         {/* Hospital Owner & Admin routes */}
-        <Route element={<ProtectedRoute allowedRoles={['hospital_owner', 'hospital_admin']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['hospital_owner', 'hospital_admin', 'hospital_manager', 'manager']} />}>
           <Route path="/hospital/owner" element={<OwnerDashboard />} />
           <Route path="/hospital/admin" element={<OwnerDashboard />} />
         </Route>

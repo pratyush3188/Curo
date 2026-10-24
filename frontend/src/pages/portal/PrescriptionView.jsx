@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   FileText, AlertTriangle, ShieldCheck, Pill, CheckCircle2, 
   Upload, AlertOctagon, Info, Clock, RotateCcw, Sparkles, Building2, User,
-  FileCheck, X, Printer
+  FileCheck, X, Printer, ExternalLink
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -10,6 +10,7 @@ import api from '../../api/client';
 export function PrescriptionView({ user }) {
   const [doctorName, setDoctorName] = useState('Dr. Rajesh Sharma (Cardiology)');
   const [hospitalOrClinic, setHospitalOrClinic] = useState('Lilavati Hospital & Research Centre');
+  const [language, setLanguage] = useState('English');
   const [fileName, setFileName] = useState('');
   const [prescriptionText, setPrescriptionText] = useState(`Rx:
 1. Tab Aspirin 75mg - 1 tablet OD after breakfast
@@ -131,6 +132,7 @@ export function PrescriptionView({ user }) {
       formData.append('prescriptionText', prescriptionText);
       formData.append('doctorName', doctorName);
       formData.append('hospitalOrClinic', hospitalOrClinic);
+      formData.append('language', language);
 
       const res = await api.post('/prescriptions/analyze', formData, {
         headers: {
@@ -147,6 +149,95 @@ export function PrescriptionView({ user }) {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  const handleOpenDedicatedWindow = () => {
+    if (!analysisResult) return;
+    const w = window.open('', '_blank', 'width=920,height=850,scrollbars=yes,resizable=yes');
+    if (!w) {
+      alert('Pop-up blocked. Please allow pop-ups for this site to view the simplified window.');
+      return;
+    }
+    const safeTitle = doctorName || 'Prescription_Safety_Report';
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>CURO Prescription Safety - ${safeTitle}</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap">
+        <style>
+          body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 28px; line-height: 1.6; }
+          .container { max-width: 840px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; padding: 40px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.06); }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 24px; margin-bottom: 28px; }
+          .logo { font-weight: 900; font-size: 26px; color: #0284c7; letter-spacing: -0.5px; }
+          .badge { background: #e0f2fe; color: #0369a1; padding: 5px 14px; border-radius: 9999px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+          .score-card { background: ${analysisResult.safetyScore >= 80 ? '#f0fdf4' : analysisResult.safetyScore >= 60 ? '#fffbeb' : '#fef2f2'}; border: 1px solid ${analysisResult.safetyScore >= 80 ? '#bbf7d0' : analysisResult.safetyScore >= 60 ? '#fde68a' : '#fecaca'}; border-radius: 20px; padding: 24px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
+          .score { font-size: 44px; font-weight: 900; color: ${analysisResult.safetyScore >= 80 ? '#15803d' : analysisResult.safetyScore >= 60 ? '#b45309' : '#b91c1c'}; }
+          .card-alert { background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; padding: 18px; margin-bottom: 14px; color: #991b1b; }
+          .card-warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 16px; padding: 18px; margin-bottom: 14px; color: #92400e; }
+          .markdown-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; white-space: pre-wrap; font-size: 14px; color: #1e293b; line-height: 1.8; }
+          .btn-print { background: #0284c7; color: white; border: none; padding: 10px 22px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(2,132,199,0.25); }
+          .btn-print:hover { background: #0369a1; }
+          @media print { body { padding: 0; background: white; } .container { box-shadow: none; border: none; padding: 0; } .btn-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div>
+              <div class="logo">CURO PHARMACOTHERAPY AI</div>
+              <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Prescription Safety & Interaction Audit &bull; Language: <strong>${language}</strong></div>
+              <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Prescribed By: <strong>${doctorName}</strong> (${hospitalOrClinic})</div>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge">Engine: ${analysisResult.modelUsed || 'Groq Neural Model'}</span>
+              <div style="margin-top: 10px;"><button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button></div>
+            </div>
+          </div>
+          <div class="score-card">
+            <div>
+              <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Prescription Safety Index</div>
+              <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-top: 4px;">
+                ${analysisResult.safetyScore >= 80 ? 'Prescription Verified Safe' : analysisResult.safetyScore >= 60 ? 'Caution Advised - Interactions Found' : 'Critical Interaction Warning!'}
+              </div>
+            </div>
+            <div class="score">${analysisResult.safetyScore}<span style="font-size: 20px; color: #94a3b8; font-weight: 700;">/100</span></div>
+          </div>
+          ${analysisResult.contraindications?.length > 0 ? `
+          <h3 style="font-size: 16px; font-weight: 800; margin: 24px 0 12px; color: #dc2626;">Drug-Drug Interactions</h3>
+          ${analysisResult.contraindications.map(c => `
+            <div class="card-alert">
+              <div style="font-weight: 800; font-size: 14px;">⚠️ ${c.drugPair} (${c.severity} Severity)</div>
+              <p style="margin: 6px 0; font-size: 13px;">${c.description}</p>
+              <div style="font-size: 12px; font-weight: 700; margin-top: 8px;">Action: ${c.recommendation}</div>
+            </div>
+          `).join('')}
+          ` : ''}
+          ${analysisResult.dosageWarnings?.length > 0 ? `
+          <h3 style="font-size: 16px; font-weight: 800; margin: 24px 0 12px; color: #d97706;">Dosage & Schedule Alerts</h3>
+          ${analysisResult.dosageWarnings.map(d => `
+            <div class="card-warn">
+              <div style="font-weight: 800; font-size: 14px;">⏱️ ${d.medication}</div>
+              <p style="margin: 6px 0; font-size: 13px;">${d.warning}</p>
+              <div style="font-size: 12px; font-weight: 700; margin-top: 8px;">Guidance: ${d.correction}</div>
+            </div>
+          `).join('')}
+          ` : ''}
+          <h3 style="font-size: 16px; font-weight: 800; margin: 28px 0 12px; color: #0f172a;">Simplified Patient Explanation (${language})</h3>
+          <div class="markdown-box">${analysisResult.simplifiedSummary || 'All medications evaluated cleanly.'}</div>
+          <div style="margin-top: 32px; font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+            Generated via CURO Groq AI Pharmacotherapy Engine &bull; Verify all medications with your licensed physician or pharmacist.
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   };
 
   return (
@@ -411,6 +502,28 @@ export function PrescriptionView({ user }) {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Language Output
+                </label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-sky-500 cursor-pointer"
+                >
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi (हिंदी)</option>
+                  <option value="Hinglish">Hinglish (Hindi-English)</option>
+                  <option value="Marathi">Marathi (मराठी)</option>
+                  <option value="Bengali">Bengali (বাংলা)</option>
+                  <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+                  <option value="Tamil">Tamil (தமிழ்)</option>
+                  <option value="Telugu">Telugu (తెలుగు)</option>
+                  <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                  <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+                </select>
+              </div>
+
               {/* Raw prescription text */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
@@ -515,8 +628,15 @@ export function PrescriptionView({ user }) {
                       Clear
                     </button>
                     <button
+                      onClick={handleOpenDedicatedWindow}
+                      className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                      title="Open full simplified summary in a separate distraction-free window"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" /> Open in Dedicated Window
+                    </button>
+                    <button
                       onClick={() => window.print()}
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                     >
                       <Printer className="h-3.5 w-3.5" /> Print Summary
                     </button>

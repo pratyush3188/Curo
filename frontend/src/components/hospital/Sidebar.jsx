@@ -60,10 +60,10 @@ export default function Sidebar() {
       <div className="p-4 mx-3 my-3 bg-[#F8F9FA] border border-[#E2E8F0] rounded-lg">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
           <Building2 className="w-4 h-4 text-[#2E5F8A]" />
-          <span>Apex Multi-Speciality</span>
+          <span className="truncate">{user?.facilityName || 'Hospital Network'}</span>
         </div>
-        <div className="text-[11px] text-slate-500 mt-0.5">
-          {user?.department ? `${user.department} Ward` : 'Central Hospital Network'}
+        <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+          {user?.department ? `${user.department} Ward` : 'Hospital Administration'}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User,
@@ -21,7 +21,28 @@ import authHero from '../../assets/auth_light_hero.jpg';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, setUser } = useAuth();
+  const { user, register, setUser } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      const role = (user?.role || '').toLowerCase();
+      const facilityType = (user?.associatedFacilityType || user?.facilityType || '').toLowerCase();
+      if (role === 'super_admin') {
+        navigate('/admin/overview', { replace: true });
+      } else if (role.includes('clinic') || facilityType === 'clinic') {
+        navigate('/clinic', { replace: true });
+      } else if (role.includes('hospital') || role.includes('owner') || facilityType === 'hospital') {
+        navigate('/hospital/owner', { replace: true });
+      } else if (role === 'doctor') {
+        navigate('/hospital/doctor', { replace: true });
+      } else if (role === 'manager' || role === 'department_manager') {
+        navigate('/hospital/manager', { replace: true });
+      } else if (role === 'patient') {
+        navigate('/portal', { replace: true });
+      }
+    }
+  }, [user, navigate]);
 
   // 'none' initially shows the 3 big role selection cards/buttons
   // 'patient' | 'hospital' | 'clinic'
@@ -268,7 +289,7 @@ export default function Register() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-200/90 font-light leading-relaxed">
-            Connecting Patients with Groq AI diagnostic analysis, Hospitals with real-time ICU telemetry, and Clinics with automated OPD scheduling in one stateless ecosystem.
+            Connecting Patients with AI diagnostic analysis, Hospitals with real-time ICU telemetry, and Clinics with automated OPD scheduling in one stateless ecosystem.
           </p>
 
           <div className="grid grid-cols-3 gap-3.5 pt-4">
@@ -282,7 +303,7 @@ export default function Register() {
             </div>
             <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15">
               <p className="text-2xl font-black text-indigo-400">AI Triage</p>
-              <p className="text-[11px] font-medium text-slate-300 mt-0.5">Groq Lab Diagnostics</p>
+              <p className="text-[11px] font-medium text-slate-300 mt-0.5">Clinical Diagnostics</p>
             </div>
           </div>
         </div>
@@ -370,7 +391,7 @@ export default function Register() {
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Patient portal, Groq AI report simplifier & OPD appointment bookings.
+                        Patient portal, AI report simplifier & OPD appointment bookings.
                       </p>
                     </div>
                   </div>

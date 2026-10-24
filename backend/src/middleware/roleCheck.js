@@ -16,8 +16,12 @@ export const requireRole = (...allowedRoles) => {
     if (roles.has('hospital_admin')) roles.add('hospital_owner');
     if (roles.has('hospital_manager')) roles.add('manager');
     if (roles.has('manager')) roles.add('hospital_manager');
-    if (roles.has('super_admin')) {
-      // Super admin can access admin routes
+    if (roles.has('clinic')) roles.add('clinic_manager');
+    if (roles.has('clinic_manager')) roles.add('clinic');
+
+    // Super admin has platform-wide authority
+    if (req.user.role === 'super_admin') {
+      return next();
     }
 
     if (!roles.has(req.user.role)) {

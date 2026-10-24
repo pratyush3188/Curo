@@ -25,12 +25,14 @@ import {
   Copy,
   Check,
   Sparkles,
+  KeyRound,
 } from 'lucide-react';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmationModal } from '../../components/common/ConfirmationModal';
 import { ReasonModal } from '../../components/common/ReasonModal';
 import { DocumentPreviewModal } from '../../components/common/DocumentPreviewModal';
 import { TableSkeleton, DrawerSkeleton } from '../../components/common/SkeletonLoader';
+import { ApprovalCredentialsModal } from '../../components/common/ApprovalCredentialsModal';
 import { adminService, DATA_CHANGE_EVENT } from '../../services/adminService';
 import { useToast } from '../../context/ToastContext';
 
@@ -73,7 +75,7 @@ export default function ClinicManagement() {
     actionType: 'danger',
     action: null,
   });
-  const [inviteModal, setInviteModal] = useState({
+  const [approvalModal, setApprovalModal] = useState({
     isOpen: false,
     facility: null,
   });
@@ -200,21 +202,7 @@ export default function ClinicManagement() {
 
   // Actions
   const handleApprove = (cln) => {
-    setConfirmModal({
-      isOpen: true,
-      type: 'info',
-      title: 'Approve Clinic Application (Demo)',
-      message: `Approve "${cln.name}"? This allows creating a clinic manager onboarding invitation.`,
-      action: async () => {
-        try {
-          await adminService.approveClinic(cln.id, reviewNoteInput);
-          success(`Approved ${cln.name} in demo queue.`);
-          setConfirmModal({ isOpen: false });
-        } catch (err) {
-          toastError(err.message || 'Approval failed');
-        }
-      },
-    });
+    setApprovalModal({ isOpen: true, facility: cln });
   };
 
   const handleReject = (cln) => {
@@ -343,11 +331,11 @@ export default function ClinicManagement() {
             Export CSV
           </button>
           <button
-            onClick={() => setInviteModal({ isOpen: true, facility: null })}
+            onClick={() => setApprovalModal({ isOpen: true, facility: clinics[0] || null })}
             className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
           >
-            <UserPlus className="w-4 h-4" />
-            Invite Clinic Manager
+            <KeyRound className="w-4 h-4" />
+            Assign Credentials
           </button>
         </div>
       </div>
@@ -557,16 +545,14 @@ export default function ClinicManagement() {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {cln.verificationStatus === 'approved' && !cln.managerAccount && (
-                          <button
-                            type="button"
-                            onClick={() => setInviteModal({ isOpen: true, facility: cln })}
-                            className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition"
-                            title="Invite Clinic Manager"
-                          >
-                            <UserPlus className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setApprovalModal({ isOpen: true, facility: cln })}
+                          className="p-1.5 text-teal-600 hover:text-teal-700 hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-lg transition"
+                          title={cln.verificationStatus === 'approved' ? 'Update Credentials / Password' : 'Approve & Assign Login'}
+                        >
+                          <KeyRound className="w-4 h-4" />
+                        </button>
 
                         {cln.accountStatus === 'active' && (
                           <button
@@ -767,143 +753,42 @@ export default function ClinicManagement() {
                     </div>
                   </div>
 
-                  {/* Assigned Clinic Manager & Invitation Section */}
+                  {/* Assigned Clinic Credentials Section */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Facility Manager & Onboarding Status
+                        Clinic Administrator Credentials
                       </h4>
-                      {selectedClinic.verificationStatus === 'approved' && !selectedClinic.managerAccount && (
-                        <button
-                          type="button"
-                          onClick={() => setInviteModal({ isOpen: true, facility: selectedClinic })}
-                          className="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition shadow-xs"
-                        >
-                          <UserPlus className="w-3.5 h-3.5" />
-                          Invite Manager
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setApprovalModal({ isOpen: true, facility: selectedClinic })}
+                        className="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition shadow-xs"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        {selectedClinic.verificationStatus === 'approved' ? 'Update / Assign Password' : 'Approve & Assign Login'}
+                      </button>
                     </div>
 
-                    {/* Active Manager Account Card */}
-                    {selectedClinic.managerAccount && (
-                      <div className="p-3.5 bg-emerald-50/70 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
-                            CM
-                          </div>
-                          <div>
-                            <p className="font-bold text-emerald-950 dark:text-emerald-100">
-                              {selectedClinic.managerAccount.name}
-                            </p>
-                            <p className="text-emerald-700 dark:text-emerald-400 text-[11px]">
-                              {selectedClinic.managerAccount.email} • Assigned Clinic Manager
-                            </p>
-                          </div>
-                        </div>
-                        <StatusBadge status={selectedClinic.managerAccount.status} type="account" />
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Assigned Role</span>
+                        <span className="font-bold text-teal-700 dark:text-teal-300">Clinic Manager / Clinic</span>
                       </div>
-                    )}
-
-                    {/* Contextual Facility Invitations */}
-                    {facilityInvitations.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                          Invitations ({facilityInvitations.length})
-                        </p>
-                        {facilityInvitations.map((inv) => (
-                          <div
-                            key={inv.id}
-                            className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div>
-                                <p className="font-bold text-slate-900 dark:text-white">
-                                  {inv.inviteeName}
-                                </p>
-                                <p className="text-slate-500 text-[11px]">{inv.email}</p>
-                              </div>
-                              <StatusBadge status={inv.status} type="invitation" />
-                            </div>
-
-                            <div className="text-[10px] text-slate-400 flex items-center gap-2">
-                              <span>Sent: {new Date(inv.createdAt).toLocaleDateString()}</span>
-                              <span>•</span>
-                              <span>Expires: {new Date(inv.expiresAt).toLocaleDateString()}</span>
-                            </div>
-
-                            {/* Simulated link and action controls */}
-                            <div className="pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleCopyLink(inv)}
-                                className="px-2 py-1 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-[11px] font-semibold flex items-center gap-1 border border-slate-200 dark:border-slate-600 cursor-pointer transition"
-                              >
-                                {copiedInvId === inv.id ? (
-                                  <>
-                                    <Check className="w-3 h-3 text-emerald-500" />
-                                    <span>Copied</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3 h-3" />
-                                    <span>Copy Link</span>
-                                  </>
-                                )}
-                              </button>
-
-                              <div className="flex items-center gap-1.5">
-                                {inv.status === 'pending' && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleSimulateActivation(inv)}
-                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition shadow-xs"
-                                      title="Simulate manager opening link and setting credentials"
-                                    >
-                                      <Sparkles className="w-3 h-3" />
-                                      Simulate Activation
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleResendInvitation(inv)}
-                                      className="p-1 text-slate-400 hover:text-teal-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
-                                      title="Resend invitation email"
-                                    >
-                                      <RotateCcw className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRevokeInvitation(inv)}
-                                      className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
-                                      title="Revoke invitation"
-                                    >
-                                      <XCircle className="w-3.5 h-3.5" />
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Specific Dashboard</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-[11px]">/clinic</span>
                       </div>
-                    )}
-
-                    {/* No manager and no invitations yet */}
-                    {!selectedClinic.managerAccount && facilityInvitations.length === 0 && (
-                      <div className="p-3.5 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-800/60 flex items-center justify-between text-xs">
-                        <div>
-                          <p className="font-bold text-amber-900 dark:text-amber-200">
-                            No Clinic Manager Linked
-                          </p>
-                          <p className="text-amber-700 dark:text-amber-400 text-[11px]">
-                            {selectedClinic.verificationStatus === 'approved'
-                              ? 'Clinic verified. Ready to invite clinic manager.'
-                              : 'Manager accounts can be invited once facility verification is approved.'}
-                          </p>
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Login Email / User ID</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {selectedClinic.authorizedRepresentative?.email || selectedClinic.email || 'None assigned'}
+                        </span>
                       </div>
-                    )}
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500">Access Mode:</span>
+                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Direct Manual Login (No Invitation Link Needed)</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -1010,6 +895,36 @@ export default function ClinicManagement() {
         isOpen={!!selectedDoc}
         onClose={() => setSelectedDoc(null)}
         document={selectedDoc}
+      />
+
+      <ApprovalCredentialsModal
+        isOpen={approvalModal.isOpen}
+        onClose={() => {
+          setApprovalModal({ isOpen: false, facility: null });
+          loadClinics();
+        }}
+        facility={approvalModal.facility}
+        facilityType="clinic"
+        onApprove={async ({ notes, assignEmail, assignPassword }) => {
+          const res = await adminService.approveClinic(approvalModal.facility.id, notes, {
+            assignEmail,
+            assignPassword,
+          });
+          success(`Approved ${approvalModal.facility.name}! Credentials assigned.`);
+          loadClinics();
+          if (selectedClinic?.id === approvalModal.facility.id) {
+            setSelectedClinic((prev) => ({
+              ...prev,
+              verificationStatus: 'approved',
+              accountStatus: 'active',
+              authorizedRepresentative: {
+                ...prev?.authorizedRepresentative,
+                email: assignEmail,
+              },
+            }));
+          }
+          return res;
+        }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import authLightHero from '../../assets/auth_light_hero.jpg';
@@ -12,8 +12,29 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      const role = (user?.role || '').toLowerCase();
+      const facilityType = (user?.associatedFacilityType || user?.facilityType || '').toLowerCase();
+      if (role === 'super_admin') {
+        navigate('/admin/overview', { replace: true });
+      } else if (role.includes('clinic') || facilityType === 'clinic') {
+        navigate('/clinic', { replace: true });
+      } else if (role.includes('hospital') || role.includes('owner') || facilityType === 'hospital') {
+        navigate('/hospital/owner', { replace: true });
+      } else if (role === 'doctor') {
+        navigate('/hospital/doctor', { replace: true });
+      } else if (role === 'manager' || role === 'department_manager') {
+        navigate('/hospital/manager', { replace: true });
+      } else if (role === 'patient') {
+        navigate('/portal', { replace: true });
+      }
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -30,16 +51,26 @@ export default function Login() {
 
     try {
       const user = await login(formData.email, formData.password);
-      if (user.role === 'patient') navigate('/portal');
-      else if (user.role === 'clinic') navigate('/clinic');
-      else if (user.role === 'doctor') navigate('/hospital/doctor');
-      else if (user.role === 'manager') navigate('/hospital/manager');
-      else if (user.role === 'hospital_owner' || user.role === 'hospital_admin') navigate('/hospital/owner');
-      else if (user.role === 'super_admin') navigate('/admin/overview');
-      else navigate('/portal');
+      const role = (user?.role || '').toLowerCase();
+      const facilityType = (user?.associatedFacilityType || user?.facilityType || '').toLowerCase();
+
+      // Check facility and elevated roles before default patient fallback
+      if (role === 'super_admin') {
+        navigate('/admin/overview');
+      } else if (role.includes('clinic') || facilityType === 'clinic') {
+        navigate('/clinic');
+      } else if (role.includes('hospital') || role.includes('owner') || facilityType === 'hospital') {
+        navigate('/hospital/owner');
+      } else if (role === 'doctor') {
+        navigate('/hospital/doctor');
+      } else if (role === 'manager' || role === 'department_manager') {
+        navigate('/hospital/manager');
+      } else {
+        navigate('/portal');
+      }
     } catch (err) {
       setError(
-        err.response?.data?.message || 'Invalid email or password. Please try again.'
+        err.response?.data?.message || err.message || 'Invalid email or password. Please try again.'
       );
     } finally {
       setLoading(false);

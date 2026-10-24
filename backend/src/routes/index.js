@@ -41,6 +41,7 @@ router.use('/admin/audit-logs', auditLogRoutes);
 router.use('/admin/settings', settingsRoutes);
 
 // Private Clinic Operational Routes
+router.use('/clinic', clinicRoutes);
 router.use('/clinics', clinicRoutes);
 
 // Direct Aliases for Standard REST compatibility

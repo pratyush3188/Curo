@@ -33,12 +33,14 @@ export const analyzePrescription = asyncHandler(async (req, res) => {
   const {
     doctorName = req.body.doctorName || 'Dr. Attending Physician',
     hospitalOrClinic = req.body.hospitalOrClinic || 'City Medical Center',
+    language = req.body.language || 'English',
   } = req.body;
 
   const analysis = await analyzePrescriptionWithGroq({
     prescriptionText,
     doctorName,
     hospitalOrClinic,
+    language,
   });
 
   const prescriptionData = {

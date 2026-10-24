@@ -54,9 +54,26 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      await login(formData.email, formData.password);
-      success('Authenticated successfully as Super Administrator.');
-      navigate(from, { replace: true });
+      const user = await login(formData.email, formData.password);
+      const role = (user?.role || '').toLowerCase();
+      const facilityType = (user?.associatedFacilityType || user?.facilityType || '').toLowerCase();
+
+      if (role === 'super_admin') {
+        success('Authenticated successfully as Super Administrator.');
+        navigate(from, { replace: true });
+      } else if (role.includes('clinic') || facilityType === 'clinic') {
+        success('Authenticated successfully. Opening Clinic Dashboard.');
+        navigate('/clinic', { replace: true });
+      } else if (role.includes('hospital') || role.includes('owner') || facilityType === 'hospital') {
+        success('Authenticated successfully. Opening Hospital Dashboard.');
+        navigate('/hospital/owner', { replace: true });
+      } else if (role === 'doctor') {
+        navigate('/hospital/doctor', { replace: true });
+      } else if (role === 'manager' || role === 'department_manager') {
+        navigate('/hospital/manager', { replace: true });
+      } else {
+        navigate('/portal', { replace: true });
+      }
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || 'Authentication failed. Please verify credentials.'

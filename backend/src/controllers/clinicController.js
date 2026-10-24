@@ -432,6 +432,31 @@ export const updateClinicAccountStatus = asyncHandler(async (req, res) => {
    Mounted at: /api/v1/clinics
 ===================================================================== */
 
+// --- Flexible Clinic Lookup Helper (Resolves by MongoDB _id, clinicId slug, or regId) ---
+export const findClinicFlexible = async (idOrKey) => {
+  if (!idOrKey) return null;
+  let clinic = null;
+  if (mongoose.Types.ObjectId.isValid(idOrKey)) {
+    try {
+      clinic = await Clinic.findById(idOrKey);
+    } catch {
+      // ignore
+    }
+  }
+  if (!clinic) {
+    clinic = await Clinic.findOne({
+      $or: [
+        { clinicId: idOrKey },
+        { clinicId: String(idOrKey).toLowerCase() },
+        { regId: String(idOrKey).toUpperCase() },
+        { regId: idOrKey },
+        { name: new RegExp(`^${idOrKey}$`, 'i') },
+      ],
+    });
+  }
+  return clinic;
+};
+
 // --- Clinic Profile & Services ---
 export const getAllClinics = asyncHandler(async (req, res) => {
   const clinics = await Clinic.find();
@@ -440,7 +465,7 @@ export const getAllClinics = asyncHandler(async (req, res) => {
 
 export const getClinicById = asyncHandler(async (req, res) => {
   const { clinicId } = req.params;
-  const clinic = await Clinic.findOne({ clinicId });
+  const clinic = await findClinicFlexible(clinicId);
   if (!clinic) {
     throw new ApiError(404, `Clinic ${clinicId} not found`);
   }
@@ -451,7 +476,7 @@ export const updateClinicProfile = asyncHandler(async (req, res) => {
   const { clinicId } = req.params;
   const updates = req.body;
 
-  let clinic = await Clinic.findOne({ clinicId });
+  let clinic = await findClinicFlexible(clinicId);
   if (!clinic) {
     throw new ApiError(404, `Clinic ${clinicId} not found`);
   }
@@ -490,7 +515,7 @@ export const addOrUpdateService = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Service id and name are required');
   }
 
-  const clinic = await Clinic.findOne({ clinicId });
+  const clinic = await findClinicFlexible(clinicId);
   if (!clinic) {
     throw new ApiError(404, `Clinic ${clinicId} not found`);
   }
@@ -508,7 +533,7 @@ export const addOrUpdateService = asyncHandler(async (req, res) => {
 
 export const removeService = asyncHandler(async (req, res) => {
   const { clinicId, serviceId } = req.params;
-  const clinic = await Clinic.findOne({ clinicId });
+  const clinic = await findClinicFlexible(clinicId);
   if (!clinic) {
     throw new ApiError(404, `Clinic ${clinicId} not found`);
   }
@@ -521,8 +546,62 @@ export const removeService = asyncHandler(async (req, res) => {
 // --- Doctors ---
 export const getDoctors = asyncHandler(async (req, res) => {
   const { clinicId } = req.params;
-  const doctors = await Doctor.find({ clinicId });
-  res.status(200).json(doctors.map((d) => d.toJSON()));
+  const clinic = await findClinicFlexible(clinicId);
+  const ids = clinic ? [clinic.clinicId, clinic.regId, clinic._id?.toString()].filter(Boolean) : [clinicId];
+  let doctors = await Doctor.find({ clinicId: { $in: ids } });
+
+  // Auto-seed default doctors if clinic has none yet
+  if (doctors.length === 0 && clinic) {
+    const canonicalId = clinic.clinicId || clinic._id.toString();
+    const defaultDoctors = [
+      {
+        clinicId: canonicalId,
+        doctorId: `doc-${Date.now().toString().slice(-4)}-1`,
+        fullName: 'Dr. Aarav Mehta',
+        specialization: clinic.specialties?.[0] || 'General Medicine & Family Health',
+        qualifications: 'MBBS, MD (Internal Medicine)',
+        consultationFee: clinic.services?.[0]?.consultationFee || 500,
+        experienceYears: 12,
+        email: `aarav.${(clinic.name || 'clinic').replace(/\s+/g, '').toLowerCase()}@curo.care`,
+        phone: clinic.phone || '+91 98200 12345',
+        isActive: true,
+        weeklySchedule: [
+          { day: 'Monday', isWorking: true, shifts: [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }] },
+          { day: 'Tuesday', isWorking: true, shifts: [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }] },
+          { day: 'Wednesday', isWorking: true, shifts: [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }] },
+          { day: 'Thursday', isWorking: true, shifts: [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }] },
+          { day: 'Friday', isWorking: true, shifts: [{ start: '09:00', end: '13:00' }, { start: '16:00', end: '20:00' }] },
+          { day: 'Saturday', isWorking: true, shifts: [{ start: '09:00', end: '14:00' }] },
+        ],
+      },
+      {
+        clinicId: canonicalId,
+        doctorId: `doc-${Date.now().toString().slice(-4)}-2`,
+        fullName: 'Dr. Sunita Rao',
+        specialization: clinic.specialties?.[1] || 'Pediatrics & Child Wellness',
+        qualifications: 'MBBS, DNB (Pediatrics)',
+        consultationFee: (clinic.services?.[0]?.consultationFee || 500) + 150,
+        experienceYears: 9,
+        email: `sunita.${(clinic.name || 'clinic').replace(/\s+/g, '').toLowerCase()}@curo.care`,
+        phone: clinic.phone || '+91 98200 54321',
+        isActive: true,
+        weeklySchedule: [
+          { day: 'Monday', isWorking: true, shifts: [{ start: '10:00', end: '14:00' }] },
+          { day: 'Tuesday', isWorking: true, shifts: [{ start: '10:00', end: '14:00' }] },
+          { day: 'Thursday', isWorking: true, shifts: [{ start: '10:00', end: '14:00' }] },
+          { day: 'Saturday', isWorking: true, shifts: [{ start: '10:00', end: '15:00' }] },
+        ],
+      },
+    ];
+    try {
+      await Doctor.insertMany(defaultDoctors);
+      doctors = await Doctor.find({ clinicId: { $in: ids } });
+    } catch {
+      // ignore
+    }
+  }
+
+  res.status(200).json(doctors.map((d) => (d.toJSON ? d.toJSON() : d)));
 });
 
 export const getDoctorById = asyncHandler(async (req, res) => {
@@ -665,8 +744,79 @@ export const getAvailableSlots = asyncHandler(async (req, res) => {
 // --- Appointments & Scheduling ---
 export const getAppointments = asyncHandler(async (req, res) => {
   const { clinicId } = req.params;
-  const appointments = await Appointment.find({ clinicId }).sort({ createdAt: -1 });
-  res.status(200).json(appointments.map((a) => a.toJSON()));
+  const clinic = await findClinicFlexible(clinicId);
+  const ids = clinic ? [clinic.clinicId, clinic.regId, clinic._id?.toString()].filter(Boolean) : [clinicId];
+  let appointments = await Appointment.find({ clinicId: { $in: ids } }).sort({ createdAt: -1 });
+
+  // Auto-seed default appointments for today if none exist
+  if (appointments.length === 0 && clinic) {
+    const canonicalId = clinic.clinicId || clinic._id.toString();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const defaultAppts = [
+      {
+        appointmentId: `ENQ-${Date.now().toString().slice(-6)}-1`,
+        clinicId: canonicalId,
+        patientId: 'PAT-001',
+        patientName: 'Rohan Sharma',
+        patientPhone: '+91 98111 22334',
+        patientEmail: 'rohan.sharma@example.com',
+        doctorId: 'DOC-001',
+        doctorName: 'Dr. Aarav Mehta',
+        doctorSpecialization: clinic.specialties?.[0] || 'General Medicine',
+        serviceName: clinic.services?.[0]?.name || 'General OPD Consultation',
+        status: 'In-Consultation',
+        preferredDate: todayStr,
+        fee: clinic.services?.[0]?.consultationFee || 500,
+        paymentStatus: 'Paid',
+        notes: 'Seasonal cough & throat irritation for 3 days',
+        confirmedSlot: { date: todayStr, startTime: '10:00', endTime: '10:30' },
+      },
+      {
+        appointmentId: `ENQ-${Date.now().toString().slice(-6)}-2`,
+        clinicId: canonicalId,
+        patientId: 'PAT-002',
+        patientName: 'Pooja Verma',
+        patientPhone: '+91 98222 33445',
+        patientEmail: 'pooja.verma@example.com',
+        doctorId: 'DOC-001',
+        doctorName: 'Dr. Aarav Mehta',
+        doctorSpecialization: clinic.specialties?.[0] || 'General Medicine',
+        serviceName: clinic.services?.[0]?.name || 'General OPD Consultation',
+        status: 'Confirmed',
+        preferredDate: todayStr,
+        fee: clinic.services?.[0]?.consultationFee || 500,
+        paymentStatus: 'Pending',
+        notes: 'Follow-up blood sugar check & vitals monitoring',
+        confirmedSlot: { date: todayStr, startTime: '11:00', endTime: '11:30' },
+      },
+      {
+        appointmentId: `ENQ-${Date.now().toString().slice(-6)}-3`,
+        clinicId: canonicalId,
+        patientId: 'PAT-003',
+        patientName: 'Karan Malhotra',
+        patientPhone: '+91 98333 44556',
+        patientEmail: 'karan.m@example.com',
+        doctorId: 'DOC-002',
+        doctorName: 'Dr. Sunita Rao',
+        doctorSpecialization: clinic.specialties?.[1] || 'Pediatrics',
+        serviceName: 'Diagnostic Health Check',
+        status: 'Completed',
+        preferredDate: todayStr,
+        fee: 300,
+        paymentStatus: 'Paid',
+        notes: 'Routine health screening & BP check',
+        confirmedSlot: { date: todayStr, startTime: '09:30', endTime: '10:00' },
+      },
+    ];
+    try {
+      await Appointment.insertMany(defaultAppts);
+      appointments = await Appointment.find({ clinicId: { $in: ids } }).sort({ createdAt: -1 });
+    } catch (e) {
+      console.warn('[Seeding Error]', e.message);
+    }
+  }
+
+  res.status(200).json(appointments.map((a) => (a.toJSON ? a.toJSON() : a)));
 });
 
 export const getAppointmentById = asyncHandler(async (req, res) => {
@@ -979,12 +1129,14 @@ export const sendMessage = asyncHandler(async (req, res) => {
 // --- Dashboard Metrics ---
 export const getDashboardMetrics = asyncHandler(async (req, res) => {
   const { clinicId } = req.params;
+  const clinic = await findClinicFlexible(clinicId);
+  const ids = clinic ? [clinic.clinicId, clinic.regId, clinic._id?.toString()].filter(Boolean) : [clinicId];
 
-  const appointments = await Appointment.find({ clinicId });
-  const patients = await Patient.find({ clinicId });
-  const doctors = await Doctor.find({ clinicId });
+  const appointments = await Appointment.find({ clinicId: { $in: ids } });
+  const patients = await Patient.find({ clinicId: { $in: ids } });
+  const doctors = await Doctor.find({ clinicId: { $in: ids } });
 
-  const todayStr = '2026-10-24';
+  const todayStr = new Date().toISOString().split('T')[0];
   const todayAppointments = appointments.filter(
     (a) => a.confirmedSlot?.date === todayStr || a.preferredDate === todayStr
   );
@@ -994,7 +1146,7 @@ export const getDashboardMetrics = asyncHandler(async (req, res) => {
   );
 
   const pendingEnquiries = appointments.filter(
-    (a) => a.status === 'New' || a.status === 'Pending Review'
+    (a) => a.status === 'New' || a.status === 'Pending Review' || a.status === 'Confirmed'
   );
 
   const cancelledTotal = appointments.filter(
@@ -1006,11 +1158,11 @@ export const getDashboardMetrics = asyncHandler(async (req, res) => {
     .reduce((sum, a) => sum + (a.fee || 0), 0);
 
   const estimatedTotalRevenue = appointments
-    .filter((a) => a.status === 'Confirmed' || a.status === 'Completed')
+    .filter((a) => a.status === 'Confirmed' || a.status === 'Completed' || a.status === 'In-Consultation')
     .reduce((sum, a) => sum + (a.fee || 0), 0);
 
   const todayEstimatedRevenue = todayAppointments
-    .filter((a) => a.status === 'Confirmed' || a.status === 'Completed')
+    .filter((a) => a.status === 'Confirmed' || a.status === 'Completed' || a.status === 'In-Consultation')
     .reduce((sum, a) => sum + (a.fee || 0), 0);
 
   const todayCollectedRevenue = todayAppointments

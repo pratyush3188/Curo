@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { Hospital } from '../models/Hospital.js';
 import { Clinic } from '../models/Clinic.js';
@@ -8,24 +9,42 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { recordAuditLog } from '../services/auditService.js';
 
 /**
- * Helper to find facility across Hospital or Clinic collections
+ * Helper to find facility across Hospital or Clinic collections safely
  */
 const findFacility = async (id, facilityType) => {
+  if (!id) return { facility: null, model: null, type: null };
+
+  const query = mongoose.isValidObjectId(id)
+    ? { $or: [{ _id: id }, { regId: id }, { clinicId: id }] }
+    : { $or: [{ regId: id }, { clinicId: id }] };
+
   if (facilityType === 'hospital') {
-    const hosp = await Hospital.findById(id);
+    const hosp = await Hospital.findOne(query);
     return { facility: hosp, model: Hospital, type: 'hospital' };
   }
   if (facilityType === 'clinic') {
-    const cln = await Clinic.findById(id);
+    const cln = await Clinic.findOne(query);
     return { facility: cln, model: Clinic, type: 'clinic' };
   }
 
   // If type not specified, check Hospital first then Clinic
-  const hosp = await Hospital.findById(id);
+  const hosp = await Hospital.findOne(query);
   if (hosp) return { facility: hosp, model: Hospital, type: 'hospital' };
 
-  const cln = await Clinic.findById(id);
+  const cln = await Clinic.findOne(query);
   if (cln) return { facility: cln, model: Clinic, type: 'clinic' };
+
+  // Also check if id is an Application record _id
+  if (mongoose.isValidObjectId(id)) {
+    try {
+      const app = await Application.findById(id);
+      if (app && app.facilityId) {
+        return await findFacility(app.facilityId.toString(), app.facilityType);
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   return { facility: null, model: null, type: null };
 };
@@ -193,39 +212,58 @@ export const approveApplication = asyncHandler(async (req, res) => {
   let userAccount = null;
 
   try {
-    // 1. Look for existing user account by facility ID or email
-    userAccount = await User.findOne({
+    // 1. Check if a user with targetEmail already exists in MongoDB
+    const existingEmailUser = await User.findOne({ email: targetEmail });
+    // 2. Check if a user is currently associated with this facility
+    const existingFacilityUser = await User.findOne({
       $or: [
         { associatedFacilityId: facility._id.toString() },
-        { email: targetEmail },
+        ...(facility.regId ? [{ associatedFacilityId: facility.regId }] : []),
+        ...(facility.clinicId ? [{ associatedFacilityId: facility.clinicId }] : []),
       ],
     });
 
-    if (userAccount) {
-      userAccount.accountStatus = 'active';
-      userAccount.isActive = true;
-      userAccount.role = assignedRole;
-      userAccount.associatedFacilityType = type;
-      userAccount.associatedFacilityId = facility._id.toString();
-      userAccount.facilityName = facility.name;
-      if (assignEmail) {
-        userAccount.email = assignEmail.toLowerCase().trim();
-      }
+    if (existingEmailUser) {
+      // If the email already exists (even if previously registered as patient or old account), upgrade to facility account!
+      existingEmailUser.accountStatus = 'active';
+      existingEmailUser.isActive = true;
+      existingEmailUser.role = assignedRole;
+      existingEmailUser.associatedFacilityType = type;
+      existingEmailUser.associatedFacilityId = facility._id.toString();
+      existingEmailUser.facilityName = facility.name;
       if (assignPassword && assignPassword.trim()) {
-        const salt = await bcrypt.genSalt(10);
-        userAccount.password = await bcrypt.hash(assignPassword.trim(), salt);
+        existingEmailUser.password = assignPassword.trim();
       }
-      await userAccount.save();
-    } else {
-      // 2. Create user account manually assigned by Super Admin
-      const initialPass = assignPassword && assignPassword.trim() ? assignPassword.trim() : 'Curo@123';
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(initialPass, salt);
+      await existingEmailUser.save();
+      userAccount = existingEmailUser;
 
+      // If there was an old different user tied to this facility, unlink its association
+      if (existingFacilityUser && existingFacilityUser._id.toString() !== existingEmailUser._id.toString()) {
+        existingFacilityUser.associatedFacilityId = null;
+        existingFacilityUser.associatedFacilityType = null;
+        await existingFacilityUser.save();
+      }
+    } else if (existingFacilityUser) {
+      // Update existing facility user with the newly assigned email & password
+      existingFacilityUser.email = targetEmail;
+      existingFacilityUser.accountStatus = 'active';
+      existingFacilityUser.isActive = true;
+      existingFacilityUser.role = assignedRole;
+      existingFacilityUser.associatedFacilityType = type;
+      existingFacilityUser.associatedFacilityId = facility._id.toString();
+      existingFacilityUser.facilityName = facility.name;
+      if (assignPassword && assignPassword.trim()) {
+        existingFacilityUser.password = assignPassword.trim();
+      }
+      await existingFacilityUser.save();
+      userAccount = existingFacilityUser;
+    } else {
+      // Create new user account with assigned credentials
+      const initialPass = assignPassword && assignPassword.trim() ? assignPassword.trim() : 'Curo@2026!';
       userAccount = await User.create({
         name: facility.authorizedRepresentative?.name || facility.name,
         email: targetEmail,
-        password: hashedPassword,
+        password: initialPass,
         role: assignedRole,
         associatedFacilityType: type,
         associatedFacilityId: facility._id.toString(),
@@ -235,8 +273,15 @@ export const approveApplication = asyncHandler(async (req, res) => {
         phone: facility.authorizedRepresentative?.phone || facility.phone || '',
       });
     }
+
+    // Also update authorizedRepresentative email on facility
+    if (facility.authorizedRepresentative) {
+      facility.authorizedRepresentative.email = targetEmail;
+      await facility.save();
+    }
   } catch (err) {
-    console.warn('[User Account Provisioning Warning]', err.message);
+    console.error('[User Account Provisioning Error]', err);
+    throw new ApiError(500, `Failed to provision user credentials for ${targetEmail}: ${err.message}`);
   }
 
   await recordAuditLog({

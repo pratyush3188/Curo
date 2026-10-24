@@ -16,6 +16,7 @@ import {
   Send,
   Save,
   X,
+  KeyRound,
 } from 'lucide-react';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmationModal } from '../../components/common/ConfirmationModal';
@@ -419,14 +420,14 @@ export default function HospitalApplications() {
                       </>
                     )}
 
-                    {selectedApp.verificationStatus === 'approved' && !selectedApp.managerAccount && (
+                    {selectedApp.verificationStatus === 'approved' && (
                       <button
                         type="button"
-                        onClick={() => setInviteModal({ isOpen: true, facility: selectedApp })}
+                        onClick={() => setApprovalModal({ isOpen: true, facility: selectedApp })}
                         className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer flex items-center gap-1.5"
                       >
-                        <UserPlus className="w-4 h-4" />
-                        Initiate Manager Account Invitation
+                        <KeyRound className="w-4 h-4" />
+                        Update / Assign Login Credentials
                       </button>
                     )}
                   </div>

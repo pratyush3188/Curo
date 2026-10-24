@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   KeyRound,
@@ -11,6 +11,7 @@ import {
   Building2,
   Stethoscope,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 
 export const ApprovalCredentialsModal = ({
@@ -35,6 +36,21 @@ export const ApprovalCredentialsModal = ({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [successResult, setSuccessResult] = useState(null);
+
+  useEffect(() => {
+    if (facility) {
+      const defEmail =
+        facility.authorizedRepresentative?.email ||
+        facility.email ||
+        facility.ownerEmail ||
+        '';
+      setEmail(defEmail);
+      setPassword('Curo@2026!');
+      setSuccessResult(null);
+      setCopied(false);
+      setNotes('');
+    }
+  }, [facility, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -228,19 +244,28 @@ export const ApprovalCredentialsModal = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full sm:flex-1 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Credentials Copied!' : 'Copy Credentials'}
               </button>
+              <a
+                href="/login"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full sm:flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Go to Sign In
+              </a>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-xl transition cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white rounded-xl transition cursor-pointer"
               >
                 Done
               </button>
